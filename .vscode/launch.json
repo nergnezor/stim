@@ -11,8 +11,10 @@
             "stopOnEntry": true,
             "runtimeExecutable": "C:/Program Files/Love/love.exe",
             // "runtimeArgs": "${workspaceFolder}/main.lua",
-            "program": "${workspaceFolder}/main.lua",
-            "consoleCoding": "utf8"
+            "runtimeArgs": "${workspaceFolder}",
+            "program": "main.lua",
+            "consoleCoding": "utf8",
+            "preLaunchTask": "pack"
         },
         {
             "name": "launch-löve",

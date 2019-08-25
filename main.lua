@@ -1,6 +1,8 @@
 platform = {}
 player1 = {}
 player2 = {}
+players = {player1,player2}
+
 function deepCopy(object)
     local lookup_table = {}
     local function _copy(object)
@@ -20,7 +22,7 @@ function deepCopy(object)
 end
 
 function love.load()
-	love.window.maximize()
+	-- love.window.maximize()
 	platform.width = love.graphics.getWidth()
 	platform.height = love.graphics.getHeight()
  
@@ -32,7 +34,6 @@ function love.load()
  
 	player1.speed = 400
  
-	player1.img = love.graphics.newImage('assets/liten.png')
 	
 	player1.ground = player1.y
 	
@@ -42,11 +43,14 @@ function love.load()
 	player1.gravity = -500
 	
 	player2 = deepCopy(player1)
+	player1.img = love.graphics.newImage('assets/liten.png')
 	player2.img = love.graphics.newImage('assets/stor.png')
+	print('ws ')
 
 end
  
 function love.update(dt)
+	-- table.foreach(players, print)
 	if love.keyboard.isDown('right') then
 		if player1.x < (love.graphics.getWidth() - player1.img:getWidth()) then
 			player1.x = player1.x + (player1.speed * dt)
