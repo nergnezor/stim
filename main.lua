@@ -71,8 +71,8 @@ function love.load()
 	players = {player1,player2}
 
 	print('ws ')
-
-	animation = newAnimation(love.graphics.newImage("assets/bossfish.ss.png"), 314, 219, 1)
+	
+	animation = newAnimation(love.graphics.newImage("assets/bossfish.ss.png"), 314, 219, 0.2)
 	joysticks = {}
 	nFound = 0
     for i, joystick in ipairs(love.joystick.getJoysticks()) do
@@ -81,13 +81,12 @@ function love.load()
 			joysticks[nFound] = joystick
 		end
 	end
-
+	
 end
-
 function love.update(dt)
 	animation.currentTime = animation.currentTime + dt
     if animation.currentTime >= animation.duration then
-        animation.currentTime = animation.currentTime - animation.duration
+		animation.currentTime = animation.currentTime - animation.duration
     end
 	for i, player in ipairs(players) do
 		if joysticks[i] == nil then 
@@ -115,8 +114,9 @@ end
 
 function love.draw()
 	love.graphics.draw(background)
+	-- local spritenum = math.random(#animation.quads)
 
-	local spriteNum = math.floor(animation.currentTime / animation.duration * #animation.quads) + 1
+	local spriteNum = math.floor(animation.currentTime / animation.duration * math.random(#animation.quads)) + 1
     love.graphics.draw(animation.spriteSheet, animation.quads[spriteNum])
 	-- love.graphics.setColor(0.9, 0.5, 1)
 	for i, player in ipairs(players) do
