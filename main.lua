@@ -75,7 +75,7 @@ function love.load()
 
 	print('ws ')
 	
-	animation = newAnimation(love.graphics.newImage("assets/bossfish.ss.png"), 314, 219, 0.2)
+	animation = newAnimation(love.graphics.newImage("assets/bossfish.ss.png"), 314, 219, 2)
 	joysticks = {}
 	nFound = 0
     for i, joystick in ipairs(love.joystick.getJoysticks()) do
@@ -106,10 +106,8 @@ end
 function love.touchpressed( id, x, y, dx, dy, pressure )
 	local closestI = 1
 	for i, player in ipairs(players) do
-		if i != closestI then 
-			if isCloser(x,y,players[i], players[closestI]) then
-				closestI = i
-			end
+		if not i == closestI and isCloser(x,y,players[i], players[closestI]) then
+			closestI = i
 		end
 	end
 	player = players[closestI]
