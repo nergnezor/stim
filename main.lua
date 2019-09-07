@@ -112,7 +112,7 @@ function love.touchpressed( id, x, y, dx, dy, pressure )
 	end
 	player = players[closestI]
 	player.x = (x + 2*player.x) / 3
-	player.y = (x + 2*player.y) / 3
+	player.y = (y + 2*player.y) / 3
 end
 function love.joystickadded(joystick)
 end    
