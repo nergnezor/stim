@@ -38,6 +38,9 @@ end
 function clamp(v,a,b)
     return (v < a and a) or (v > b and b) or v
 end
+function isCloser(x,y,a,b)
+    return math.pow(x-a.x,2) + math.pow(y-a.y,2) < math.pow(x-b.x,2) + math.pow(y-b.y,2)
+end
 function newAnimation(image, width, height, duration)
     local animation = {}
     animation.spriteSheet = image;
@@ -100,7 +103,19 @@ function love.update(dt)
 		
 	end
 end
-
+function love.touchpressed( id, x, y, dx, dy, pressure )
+	local closestI = 1
+	for i, player in ipairs(players) do
+		if i != closestI then 
+			if isCloser(x,y,players[i], players[closestI]) then
+				closestI = i
+			end
+		end
+	end
+	player = players[closestI]
+	player.x = (x + 2*player.x) / 3
+	player.y = (x + 2*player.y) / 3
+end
 function love.joystickadded(joystick)
 end    
 
