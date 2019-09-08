@@ -105,8 +105,8 @@ function love.update(dt)
 	local touches = love.touch.getTouches()
 	for ti, id in ipairs(touches) do
 		player, dx, dy = closest(id)
-		player.x = dx/10
-		player.y = dy/10
+		player.x = -dx/10
+		player.y = -dy/10
 	end
 	for i, player in ipairs(players) do
 		if joysticks[i] == nil then 
