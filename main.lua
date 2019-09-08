@@ -39,7 +39,21 @@ function clamp(v,a,b)
     return (v < a and a) or (v > b and b) or v
 end
 function isCloser(x,y,a,b)
-    return math.pow(x-a.x,2) + math.pow(y-a.y,2) < math.pow(x-b.x,2) + math.pow(y-b.y,2)
+	return math.pow(x-a.x,2) + math.pow(y-a.y,2) < math.pow(x-b.x,2) + math.pow(y-b.y,2)
+end
+function closest()
+	local touches = love.touch.getTouches()
+ 
+	local closestI = 1
+	for ti, id in ipairs(touches) do
+		local x, y = love.touch.getPosition(id)
+		for i, player in ipairs(players) do
+			if not i == closestI and isCloser(x,y,players[i], players[closestI]) then
+				closestI = i
+			end
+		end
+	end
+	return [players[closestI], players[closestI].x - x, players[closestI].y - y]
 end
 function newAnimation(image, width, height, duration)
     local animation = {}
@@ -91,6 +105,10 @@ function love.update(dt)
     if animation.currentTime >= animation.duration then
 		animation.currentTime = animation.currentTime - animation.duration
     end
+		player, dx, dy = closest()
+		player.x = dx/10
+		player.y = dy/10
+    end
 	for i, player in ipairs(players) do
 		if joysticks[i] == nil then 
 			break 
@@ -100,19 +118,11 @@ function love.update(dt)
 		player.x = clamp(player.x, 0, love.graphics.getWidth())
 		player.y = clamp(player.y, 0, love.graphics.getHeight())
 		player.rotation = player.rotation + 0.01 * joysticks[i]:getAxis(3)
-		
 	end
 end
 function love.touchpressed( id, x, y, dx, dy, pressure )
-	local closestI = 1
-	for i, player in ipairs(players) do
-		if not i == closestI and isCloser(x,y,players[i], players[closestI]) then
-			closestI = i
-		end
-	end
-	player = players[closestI]
-	player.x = (x + 2*player.x) / 3
-	player.y = (y + 2*player.y) / 3
+
+
 end
 function love.joystickadded(joystick)
 end    
