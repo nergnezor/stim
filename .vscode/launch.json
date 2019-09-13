@@ -8,24 +8,13 @@
             "name": "launch process",
             "type": "lua",
             "request": "launch",
-            "stopOnEntry": true,
+            "stopOnEntry": false,
             "runtimeExecutable": "C:/Program Files/Love/love.exe",
             // "runtimeArgs": "${workspaceFolder}/main.lua",
-            "runtimeArgs": "${workspaceFolder}",
+            "runtimeArgs": "--console .",
             "program": "main.lua",
             "consoleCoding": "utf8",
-            "preLaunchTask": "pack"
-        },
-        {
-            "name": "launch-löve",
-            "type": "lua",
-            "request": "launch",
-            // "workingDirectory": "${workspaceRoot}",
-            "executable": "C:/Program Files/Love/love.exe",
-            "arguments": "./",
-            "listenPublicly": false,
-            "listenPort": 56789,
-            "encoding": "UTF-8"
+            // "preLaunchTask": "pack"
         },
     ]
 }
