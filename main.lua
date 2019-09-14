@@ -1,28 +1,30 @@
 local loveblobs = require "loveblobs"
 local util = require "loveblobs.util"
+local Softbody = require "loveballs"
+-- Converts HSL to RGB. (input and output range: 0 - 255)
+function HSL(h, s, l, a)
+    if s <= 0 then return l, l, l, a end
+    h, s, l = h / 256 * 6, s / 255, l / 255
+    local c = (1 - math.abs(2 * l - 1)) * s
+    local x = (1 - math.abs(h % 2 - 1)) * c
+    local m, r, g, b = (l - .5 * c), 0, 0, 0
+    if h < 1 then
+        r, g, b = c, x, 0
+    elseif h < 2 then
+        r, g, b = x, c, 0
+    elseif h < 3 then
+        r, g, b = 0, c, x
+    elseif h < 4 then
+        r, g, b = 0, x, c
+    elseif h < 5 then
+        r, g, b = x, 0, c
+    else
+        r, g, b = c, 0, x
+    end
+    return (r + m) * 1, (g + m) * 1, (b + m) * 1, a
+end
 
 local softbodies = {}
-platform = {}
-player1 = {}
-player2 = {}
-scale = 0.2
-function deepCopy(object)
-    local lookup_table = {}
-    local function _copy(object)
-        if type(object) ~= "table" then
-            return object
-        elseif lookup_table[object] then
-            return lookup_table[object]
-        end
-        local new_table = {}
-        lookup_table[object] = new_table
-        for index, value in pairs(object) do
-            new_table[_copy(index)] = _copy(value)
-        end
-        return setmetatable(new_table, getmetatable(object))
-    end
-    return _copy(object)
-end
 
 function clamp(v, a, b) return (v < a and a) or (v > b and b) or v end
 function isCloser(x, y, a, b)
@@ -39,25 +41,7 @@ function closest(id, x, y)
     end
     return closestI
 end
-function newAnimation(image, width, height, duration)
-    local animation = {}
-    animation.spriteSheet = image
-    animation.quads = {}
 
-    for y = 0, image:getHeight() - height, height do
-        for x = 0, image:getWidth() - width, width do
-            table.insert(animation.quads, love.graphics.newQuad(x, y, width,
-                                                                height,
-                                                                image:getDimensions()))
-        end
-    end
-
-    animation.duration = duration or 1
-    animation.currentTime = 0
-
-    return animation
-end
-debug = true
 function love.load()
     print("testErik")
     if love.filesystem.getInfo("SDL_GameControllerDB/gamecontrollerdb.txt") then
@@ -66,26 +50,42 @@ function love.load()
     end
     love.graphics.setBackgroundColor(0.1, 0.4, 0.6)
     background = love.graphics.newImage("assets/oceanbg.png")
-    player1.x = love.graphics.getWidth() / 2
-    player1.y = love.graphics.getHeight() / 2
 
     love.physics.setMeter(16) -- the height of a meter our worlds will be 64px
     world = love.physics.newWorld(0, 1 * 16, true) -- create a world for the bodies to exist in with horizontal gravity of 0 and vertical gravity of 9.81
-    fishVertices = {
-        0, 60, 50, 100, 100, 60, 140, 80, 130, 50, 140, 10, 100, 40, 50, 0
-    }
-
-    -- make a floor out of a softsurface
-    local points = {
-        0, love.graphics.getHeight(), 0, 0, 10, 0, 10,
-        love.graphics.getHeight() - 100, love.graphics.getWidth() - 10,
-        love.graphics.getHeight() - 100, love.graphics.getWidth() - 10, 10,
-        love.graphics.getWidth(), 10, love.graphics.getWidth(),
-        love.graphics.getHeight()
-    }
+    -- -- make a floor out of a softsurface
+    -- local points = {
+    --     0, love.graphics.getHeight(), 0, 0, 10, 0, 10,
+    --     love.graphics.getHeight() - 100, love.graphics.getWidth() - 10,
+    --     love.graphics.getHeight() - 100, love.graphics.getWidth() - 10, 10,
+    --     love.graphics.getWidth(), 10, love.graphics.getWidth(),
+    --     love.graphics.getHeight()
+    --     -- 0, love.graphics.getHeight(), 0, 0, 10, 0, 10,
+    --     -- love.graphics.getHeight() - 10, love.graphics.getWidth() - 10,
+    --     -- love.graphics.getHeight() - 10, love.graphics.getWidth() - 10, 10, 10,
+    --     -- 10, 0, 0, love.graphics.getWidth(), 0, love.graphics.getWidth(), 10,
+    --     -- love.graphics.getWidth(), love.graphics.getHeight()
+    -- }
+    -- local b = loveblobs.softsurface(world, points, 64, "static")
+    -- table.insert(softbodies, b)
+    local points = {-10000, 1000, 10000, 1000, 10000, 10000, -10000, 10000}
     local b = loveblobs.softsurface(world, points, 64, "static")
-
     table.insert(softbodies, b)
+    for i = 1, math.random(200) do
+        x = math.random(love.graphics.getWidth() * 20) -
+                love.graphics.getWidth() * 10 / 2
+        y = math.random(love.graphics.getHeight() * 10) -
+                love.graphics.getWidth() * 10 / 2
+        -- make a floor out of a softsurface
+        local points = {
+            x + math.random(30, 10), y + math.random(30, 10),
+            x + math.random(110, 200), y + math.random(30, 10),
+            x + math.random(110, 200), y + math.random(110, 200),
+            x + math.random(30, 100), y + math.random(110, 200)
+        }
+        local b = loveblobs.softsurface(world, points, 64, "static")
+        table.insert(softbodies, b)
+    end
 
     joysticks = {}
     nFound = 0
@@ -96,56 +96,125 @@ function love.load()
             nFound = nFound + 1
             joysticks[nFound] = joystick
             -- a softbody
-            local b = loveblobs.softbody(world, 200 * nFound, 0, 40, 2, 4)
-            -- b:setFrequency(60)
+            local b = loveblobs.softbody(world, 200 * nFound, 100, 40, 2, 4)
+            b:setFrequency(2)
             -- b:setDamping(1000)
             -- b:setFriction(10000)
             table.insert(softbodies, b)
+            -- b = loveblobs.softbody(world, 100 + 200 * nFound, 100, 40, 2, 4)
+            -- b:setFrequency(2)
+            -- -- b:setDamping(1000)
+            -- -- b:setFriction(10000)
+            -- table.insert(softbodies, b)
         end
     end
 end
+scale = 1
 
 function love.update(dt)
     require("lurker").update()
-    world:update(dt) -- this puts the world into motion
-
+    for i = 1, 4 do world:update(dt) end
+    diagonal = util.dist(love.graphics.getWidth(), love.graphics.getHeight(), 0,
+                         0)
+    mindist = diagonal * 0.4
+    maxdist = mindist
+    mindistX = love.graphics.getWidth() * 0.6
+    mindistY = love.graphics.getHeight() * 0.6
+    maxdistX = mindistX
+    maxdistY = mindistY
+    -- scale = 1
+    cx = 0
+    cy = 0
+    nbodies = 0
+    panRight = nil
+    count = 0
     for i, v in ipairs(softbodies) do
-        world:update(dt) -- this puts the world into motion
         v:update(dt)
-
-        local body = nil
         if tostring(v) == "softbody" then
+            count = count + 1
             body = v.centerBody
             x, y = body:getPosition()
-            dx = 5000 * joysticks[i - 1]:getAxis(1)
-            dy = 5000 * joysticks[i - 1]:getAxis(2)
+            -- local a1 = 3
+            -- local a2 = 6
+            -- if i % 2 == 0 then
+            --     a1 = 1
+            --     a2 = 2
+            -- end
+            dx = 10000 * joysticks[count]:getAxis(1)
+            dy = 10000 * joysticks[count]:getAxis(2)
             body:applyForce(dx, dy)
+            for j, v2 in ipairs(softbodies) do
+                if j > i then
+                    x2, y2 = softbodies[j].centerBody:getPosition()
+                    dist = util.dist(x, y, x2, y2)
+                    if dist > maxdist then maxdist = dist end
+                    if math.abs(x - x2) > maxdistX then
+                        maxdistX = math.abs(x - x2)
+                    end
+                    if math.abs(y - y2) > maxdistY then
+                        maxdistY = math.abs(y - y2)
+                    end
+                end
+            end
+
+            cx = cx + x * scale
+            cy = cy + y * scale
+            nbodies = nbodies + 1
+
         end
     end
+    cx = cx / nbodies
+    cy = cy / nbodies
+    -- scale 1: maxdist < 90% diagonal
+    -- scale 0.5: maxdist < 90% diagonal
+    -- if maxdist > mindist and scale > 0.5 then
+    --     -- print(maxdist)
+    --     scale = scale - 0.001
+    -- end
+    -- if maxdist/scale > 0.9* diagonal and scale > 0.001  then scale = scale - 0.001 end
+    -- if (maxdist > diagonal) then scale = 1 - maxdist / diagonal end
 end
 
-function love.touchpressed(id, x, y, dx, dy, pressure) end
-
-function love.joystickadded(joystick) end
-
-local lastbutton = "none"
-local lastStick = "none"
-
 function love.joystickpressed(joystick, button)
-    lastbutton = button
-    lastStick = joystick:getName()
-    p1joystick = joystick
     print("pressed")
+    for i, v in ipairs(softbodies) do
+        if tostring(v) == "softbody" then
+            v.centerBody:setPosition(love.graphics.getWidth() / 2,
+                                     love.graphics.getHeight() / 2)
+        end
+    end
+    screenX, screenY = love.graphics.transformPoint(x, y)
+    print(screenX, screenY, x, y)
 end
 
 function love.draw()
-    -- love.graphics.circle('fill', players[1].x, players[1].y, 100, 64)
+    -- love.graphics.draw(background, 0, 0)
+    love.graphics.push()
+    dx = -cx + love.graphics.getWidth() / 2
+    dy = -cy + love.graphics.getHeight() / 2
+    -- print("cx:" .. cx .. " cy:" .. cy .. " dx:" .. dx .. " dx:" .. dx)
+    -- if util.dist(dx, dy, 0, 0) > 100 then love.graphics.translate(dx, dy) end
+    -- if panRight then love.graphics.translate(dx / 10, dy / 10) end
+    love.graphics.translate(dx / 1, dy / 1)
+    love.graphics.scale(scale, scale)
+    -- if maxdist > mindist and scale > 0.2 then
+    scale = 1 / math.max((maxdistX / mindistX), (maxdistY / mindistY))
+    scale = math.min(1, scale)
+    -- print(scale)
+    -- end
+    -- if maxdist > 600/scale then scale = scale - 0.001 end
+    -- if maxdist < 600/scale then scale = scale + 0.001 end
     for i, v in ipairs(softbodies) do
-        -- love.graphics.setColor(50 * i, 100, 200 * i)
+        -- love.graphics.setColor(0.2 * i, 0.2 * i, 0.2 * i)
+
+        love.graphics.setColor(HSL(100 * i % 255, 255 - 30, 200 - 30, 0.3))
         if (tostring(v) == "softbody") then
+            v:draw("fill", false)
+            love.graphics.setColor(HSL(100 * i % 255, 255, 200, 0.3))
             v:draw("line", false)
         else
             v:draw(false)
         end
     end
+    love.graphics.pop()
 end
