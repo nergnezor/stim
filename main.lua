@@ -71,7 +71,7 @@ function love.load()
     local points = {-10000, 1000, 10000, 1000, 10000, 10000, -10000, 10000}
     local b = loveblobs.softsurface(world, points, 64, "static")
     table.insert(softbodies, b)
-    for i = 1, math.random(200) do
+    for i = 1, math.random(20) do
         x = math.random(love.graphics.getWidth() * 20) -
                 love.graphics.getWidth() * 10 / 2
         y = math.random(love.graphics.getHeight() * 10) -
@@ -79,9 +79,9 @@ function love.load()
         -- make a floor out of a softsurface
         local points = {
             x + math.random(30, 10), y + math.random(30, 10),
-            x + math.random(110, 200), y + math.random(30, 10),
-            x + math.random(110, 200), y + math.random(110, 200),
-            x + math.random(30, 100), y + math.random(110, 200)
+            x + math.random(110, 400), y + math.random(30, 10),
+            x + math.random(110, 400), y + math.random(110, 400),
+            x + math.random(30, 100), y + math.random(110, 400)
         }
         local b = loveblobs.softsurface(world, points, 64, "static")
         table.insert(softbodies, b)
