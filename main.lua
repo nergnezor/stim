@@ -71,7 +71,7 @@ function love.load()
     local b = loveblobs.softsurface(world, points, 64, "static")
     table.insert(softbodies, b)
 
-    for i = 1, math.random(200) do
+    for i = 1, math.random(50) do
         x = math.random(love.graphics.getWidth() * 20) -
                 love.graphics.getWidth() * 10 / 2
         y = math.random(love.graphics.getHeight() * 10) -
@@ -103,13 +103,13 @@ function love.load()
             table.insert(softbodies, b)
         end
     end
-    for i = 1, 50 do
-        x = math.random(2000) - 1000
-        y = math.random(2000) - 1000
-        r = 10 + math.random(10)
-        local b = loveblobs.softbody(world, x, y, r, 2, 4)
-        table.insert(softbodies, b)
-    end
+    -- for i = 1, 50 do
+    --     x = math.random(2000) - 1000
+    --     y = math.random(2000) - 1000
+    --     r = 10 + math.random(10)
+    --     local b = loveblobs.softbody(world, x, y, r, 2, 4)
+    --     table.insert(softbodies, b)
+    -- end
 end
 scale = 1
 
@@ -118,7 +118,7 @@ function love.update(dt)
     for i = 1, 4 do world:update(dt) end
     diagonal = util.dist(love.graphics.getWidth(), love.graphics.getHeight(), 0,
                          0)
-    mindist = diagonal * 0.4
+    mindist = diagonal * 0.5
     maxdist = mindist
     mindistX = love.graphics.getWidth() * 0.6
     mindistY = love.graphics.getHeight() * 0.6
@@ -200,7 +200,7 @@ function love.draw()
     love.graphics.translate(dx / 1, dy / 1)
     scale = 1 / math.max((maxdistX / mindistX), (maxdistY / mindistY))
     scale = math.min(1, scale)
-    if scale < 1 and scale > 0.1 then love.graphics.scale(scale, scale) end
+    if scale < 1 then love.graphics.scale(scale, scale) end
     for i, v in ipairs(softbodies) do
         -- love.graphics.setColor(0.2 * i, 0.2 * i, 0.2 * i)
 
